@@ -99,7 +99,7 @@ public class DocumentScannerModule extends ReactContextBaseJavaModule {
     }
 
     public String getImageInBase64(Activity currentActivity, Uri croppedImageUri, int quality) throws FileNotFoundException {
-        Bitmap bitmap = convertToBlackAndWhite(BitmapFactory.decodeStream(
+        Bitmap bitmap = convertToGrayscale(BitmapFactory.decodeStream(
             currentActivity.getContentResolver().openInputStream(croppedImageUri)
         ));
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
