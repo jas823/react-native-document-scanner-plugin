@@ -1,3 +1,5 @@
+import UIKit
+
 @available(iOS 13.0, *)
 @objc(DocumentScanner)
 class DocumentScanner: NSObject {
@@ -8,6 +10,36 @@ class DocumentScanner: NSObject {
     
     /** @property  documentScanner the document scanner */
     private var documentScanner: DocScanner?
+
+    @objc func convertBase64ImagesToGrayscale(_ base64Images: [String]) -> [String] {
+        var grayscaleBase64Images: [String] = []
+
+        for base64String in base64Images {
+            if let imageData = Data(base64Encoded: base64String),
+            let image = UIImage(data: imageData),
+            let grayscaleImage = convertToGrayscale(image),
+            let grayscaleImageData = grayscaleImage.jpegData(compressionQuality: 1.0) {
+                
+                let grayscaleBase64String = grayscaleImageData.base64EncodedString()
+                grayscaleBase64Images.append(grayscaleBase64String)
+            }
+        }
+        
+        return grayscaleBase64Images
+    }
+
+    @objc func convertToGrayscale(_ image: UIImage) -> UIImage? {
+        let ciImage = CIImage(image: image)
+        let grayscaleFilter = CIFilter(name: "CIPhotoEffectMono")
+        grayscaleFilter?.setValue(ciImage, forKey: kCIInputImageKey)
+
+        if let outputImage = grayscaleFilter?.outputImage,
+        let cgImage = CIContext().createCGImage(outputImage, from: outputImage.extent) {
+            return UIImage(cgImage: cgImage)
+        }
+        
+        return nil
+    }
 
     @objc(scanDocument:withResolver:withRejecter:)
     func scanDocument(
@@ -25,7 +57,7 @@ class DocumentScanner: NSObject {
                     // document scan success
                     resolve([
                         "status": "success",
-                        "scannedImages": scannedDocumentImages
+                        "scannedImages": self.convertBase64ImagesToGrayscale(scannedDocumentImages)
                     ])
                     self.documentScanner = nil
                 },

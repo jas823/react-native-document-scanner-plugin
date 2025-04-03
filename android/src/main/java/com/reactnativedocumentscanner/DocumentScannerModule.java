@@ -3,6 +3,10 @@ package com.reactnativedocumentscanner;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.util.Base64;
 import androidx.activity.ComponentActivity;
@@ -44,10 +48,22 @@ public class DocumentScannerModule extends ReactContextBaseJavaModule {
         return NAME;
     }
 
+    private Bitmap convertToBlackAndWhite(Bitmap original) {
+        Bitmap bwBitmap = Bitmap.createBitmap(original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bwBitmap);
+        Paint paint = new Paint();
+        ColorMatrix colorMatrix = new ColorMatrix();
+        colorMatrix.setSaturation(0);
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
+        paint.setColorFilter(filter);
+        canvas.drawBitmap(original, 0, 0, paint);
+        return bwBitmap;
+    }
+
     public String getImageInBase64(Activity currentActivity, Uri croppedImageUri, int quality) throws FileNotFoundException {
-        Bitmap bitmap = BitmapFactory.decodeStream(
+        Bitmap bitmap = convertToBlackAndWhite(BitmapFactory.decodeStream(
             currentActivity.getContentResolver().openInputStream(croppedImageUri)
-        );
+        ));
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
