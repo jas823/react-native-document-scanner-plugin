@@ -8,6 +8,9 @@
   "react-native": "src/index",
   "source": "src/index",
   "files": [
+    "dist/",
+    "src/index.js",
+    "src/index.d.ts",
     "src",
     "lib",
     "android",
@@ -26,6 +29,7 @@
   "scripts": {
     "test": "jest",
     "typescript": "tsc --noEmit",
+    "prepare": "yarn build",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "build": "bob build",
     "build:expo-plugin": "expo-module build --build ./expo-plugin",
