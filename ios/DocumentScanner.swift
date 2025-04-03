@@ -18,7 +18,7 @@ class DocumentScanner: NSObject {
             if let imageData = Data(base64Encoded: base64String),
             let image = UIImage(data: imageData),
             let grayscaleImage = convertToGrayscale(image),
-            let grayscaleImageData = grayscaleImage.jpegData(compressionQuality: 1.0) {
+            let grayscaleImageData = grayscaleImage.jpegData(compressionQuality: 0.5) {
                 
                 let grayscaleBase64String = grayscaleImageData.base64EncodedString()
                 grayscaleBase64Images.append(grayscaleBase64String)
@@ -35,6 +35,20 @@ class DocumentScanner: NSObject {
 
         if let outputImage = grayscaleFilter?.outputImage,
         let cgImage = CIContext().createCGImage(outputImage, from: outputImage.extent) {
+            return UIImage(cgImage: cgImage)
+        }
+        
+        return nil
+    }
+
+    @objc func convertToBlackAndWhite(_ image: UIImage) -> UIImage? {
+        let ciImage = CIImage(image: image)
+        let grayscaleFilter = CIFilter(name: "CIColorMonochrome")
+        grayscaleFilter?.setValue(ciImage, forKey: kCIInputImageKey)
+        grayscaleFilter?.setValue(CIColor(red: 0, green: 0, blue: 0), forKey: kCIInputColorKey) 
+    
+        if let outputImage = grayscaleFilter?.outputImage,
+            let cgImage = CIContext().createCGImage(outputImage, from: outputImage.extent) {
             return UIImage(cgImage: cgImage)
         }
         

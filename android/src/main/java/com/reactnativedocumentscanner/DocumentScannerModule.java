@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
@@ -48,7 +49,7 @@ public class DocumentScannerModule extends ReactContextBaseJavaModule {
         return NAME;
     }
 
-    private Bitmap convertToBlackAndWhite(Bitmap original) {
+    private Bitmap convertToGrayscale(Bitmap original) {
         Bitmap bwBitmap = Bitmap.createBitmap(original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bwBitmap);
         Paint paint = new Paint();
@@ -57,6 +58,43 @@ public class DocumentScannerModule extends ReactContextBaseJavaModule {
         ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
         paint.setColorFilter(filter);
         canvas.drawBitmap(original, 0, 0, paint);
+        return bwBitmap;
+    }
+
+    private Bitmap convertToBlackAndWhite(Bitmap original) {
+        Bitmap bwBitmap = Bitmap.createBitmap(original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bwBitmap);
+        Paint paint = new Paint();
+
+        // Convert the image to grayscale first
+        ColorMatrix colorMatrix = new ColorMatrix();
+        colorMatrix.setSaturation(0);  // Converts to grayscale
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
+        paint.setColorFilter(filter);
+        canvas.drawBitmap(original, 0, 0, paint);
+
+        // Now, threshold the grayscale image to convert to black and white (binary)
+        int width = bwBitmap.getWidth();
+        int height = bwBitmap.getHeight();
+        int threshold = 128; // The threshold value can be adjusted (0-255)
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int pixelColor = bwBitmap.getPixel(x, y);
+
+                // Get the brightness of the pixel (luminosity)
+                int r = Color.red(pixelColor);
+                int g = Color.green(pixelColor);
+                int b = Color.blue(pixelColor);
+                int brightness = (r + g + b) / 3;
+
+                // Apply threshold: if brightness is less than the threshold, make it black, else white
+                int newColor = brightness < threshold ? Color.BLACK : Color.WHITE;
+
+                bwBitmap.setPixel(x, y, newColor);
+            }
+        }
+
         return bwBitmap;
     }
 
